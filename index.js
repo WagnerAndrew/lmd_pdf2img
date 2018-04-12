@@ -4,19 +4,11 @@ const gm = require('gm').subClass({ imageMagick: true });
 const s3 = new AWS.S3();
 
 exports.handler = (event, context) => {
-  console.log('Thumbnail create lambda function start');
-  console.log('Event: ', util.inspect(event, {depth: 5}));
-
   const srcBucket = event.Records[0].s3.bucket.name;
   const srcKey = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
 
   const dstBucket = srcBucket;
-  const dstKey = srcKey.replace('/pdf/', '/thumbnail/').replace('.pdf', '.png');
-
-  console.log('srcBucket: ' + srcBucket)
-  console.log('srcKey: ' + srcKey)
-  console.log('dstBucket: ' + dstBucket)
-  console.log('dstKey: ' + dstKey)
+  const dstKey = srcKey.replace('.pdf', '.png');
 
   s3.getObject({Bucket: srcBucket, Key: srcKey}, (err, response) => {
     if (err) {
@@ -27,8 +19,8 @@ exports.handler = (event, context) => {
     // conversion start
     gm(response.Body)
       .setFormat("png")
-      .resize(200)
-      .quality(100)
+      .resize(200) // you can configure
+      .quality(100) // you can configure
       .stream((err, stdout, stderr) => {
         if(err) {
           console.log("gm conversion process error: ");
